@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    #block {
+        width: 100px;
+        height: 100px;
+        background-color: red;
+        position: absolute;
+    }
+
+    body {
+        overflow: hidden;
+    }
+</style>
+
+<body>
+    <div id="block"></div>
+
+
+    <script>
+        let socket = new WebSocket("ws://127.0.0.1:8080/ws");
+        console.log("Attempting Connection...");
+
+        socket.onopen = () => {
+            console.log("Successfully Connected");
+            socket.send("Hi From the Client!")
+        };
+
+        socket.onclose = event => {
+            console.log("Socket Closed Connection: ", event);
+            socket.send("Client Closed!")
+        };
+
+        socket.onerror = error => {
+            console.log("Socket Error: ", error);
+        };
+
+        socket.on = (e) => {
+            console.log(e)
+        };
+        // Получаем блок по ID
+        let block = document.getElementById("block");
+
+        // Функция для перемещения блока
+        function moveBlock(e) {
+            // Перемешаем блок по X
+            block.style.left = e.pageX + 'px';
+            // Перемешаем блок по Y
+            block.style.top = e.pageY + 'px';
+
+        }
+        // Отслеживаем событие нажатия мыши
+        block.addEventListener("mousedown", function (e) {
+            // Отслеживаем событие перемещение мыши
+            document.onmousemove = function (e) {
+                // Объявляем функцию для перемещения блока
+                moveBlock(e);
+            }
+
+            // Отслеживаем отпускание кнопки мыши
+            block.onmouseup = function () {
+                // Убираем отслеживание позиции мыши
+                document.onmousemove = null;
+                // Убираем отслеживание нажатия мыши
+                block.onmouseup = null;
+
+                var myObject = {
+                    x: block.style.left,
+                    y: block.style.top
+                }
+                socket.send(JSON.stringify(myObject))
+            }
+        });
+    </script>
+</body>
+
+</html>
